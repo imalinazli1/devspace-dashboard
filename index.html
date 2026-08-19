@@ -1,0 +1,376 @@
+<!-- 
+  ========================================================================
+  DevSpace - Yazılımcı Öğrenci Paneli
+  Copyright (c) 2026 Nazlı İmalı. Tüm Hakkı Saklıdır. (All Rights Reserved)
+  
+  Bu yazılım ve içeriği Nazlı İmalı'ya aittir. İzin alınmadan kısmen 
+  veya tamamen kopyalanamaz, çoğaltılamaz veya yetkisiz dağıtılamaz.
+  ========================================================================
+-->
+
+<!DOCTYPE html>
+<html lang="tr" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevSpace - Yazılımcı Öğrenci Paneli</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; }
+        .sidebar { background-color: #1e293b; border-right: 1px solid #334155; min-height: 100vh; }
+        .nav-link { color: #94a3b8; border-radius: 8px; margin-bottom: 4px; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background-color: #3b82f6; color: #ffffff; }
+        .code-block { background-color: #090d16; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; white-space: pre-wrap; }
+        .kanban-col { background-color: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 15px; min-height: 400px; }
+        .note-card { background-color: #1e293b; border-left: 4px solid #3b82f6; border-radius: 8px; padding: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar p-3 d-none d-md-block">
+            <div class="d-flex align-items-center mb-4 ps-2">
+                <i class="bi bi-code-slash text-primary fs-3 me-2"></i>
+                <h5 class="m-0 fw-bold">DevSpace</h5>
+            </div>
+            <ul class="nav nav-pills flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" id="nav-snippets" onclick="switchTab('snippets')"><i class="bi bi-journal-code me-2"></i>Kod Deposu</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="nav-projects" onclick="switchTab('projects')"><i class="bi bi-kanban me-2"></i>Proje Takibi</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="nav-notes" onclick="switchTab('notes')"><i class="bi bi-sticky me-2"></i>Hızlı Notlar</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Ana İçerik -->
+        <div class="col-md-9 col-lg-10 p-4">
+            
+            <!-- SEKME 1: KOD DEPOSU -->
+            <div id="tab-snippets">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 class="fw-bold m-0">Kod Deposu</h3>
+                        <small class="text-secondary">Sık kullandığın kodları ve şablonları sakla.</small>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSnippetModal">
+                        <i class="bi bi-plus-lg me-1"></i> Yeni Kod Ekle
+                    </button>
+                </div>
+                <div class="row g-3" id="snippetContainer"></div>
+            </div>
+
+            <!-- SEKME 2: PROJE TAKİBİ -->
+            <div id="tab-projects" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 class="fw-bold m-0">Proje ve Ödev Takibi</h3>
+                        <small class="text-secondary">Sorumluluklarını ve aşamalarını takip et.</small>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
+                        <i class="bi bi-plus-lg me-1"></i> Yeni Görev Ekle
+                    </button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="kanban-col">
+                            <h6 class="fw-bold text-warning mb-3"><i class="bi bi-circle me-2"></i>Yapılacaklar</h6>
+                            <div id="todoContainer" class="d-flex flex-column gap-2"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="kanban-col">
+                            <h6 class="fw-bold text-info mb-3"><i class="bi bi-arrow-repeat me-2"></i>Devam Edenler</h6>
+                            <div id="inProgressContainer" class="d-flex flex-column gap-2"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="kanban-col">
+                            <h6 class="fw-bold text-success mb-3"><i class="bi bi-check-circle me-2"></i>Tamamlananlar</h6>
+                            <div id="doneContainer" class="d-flex flex-column gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEKME 3: HIZLI NOTLAR -->
+            <div id="tab-notes" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 class="fw-bold m-0">Hızlı Ders Notları</h3>
+                        <small class="text-secondary">Ders esnasında aldığın anlık hatırlatıcı notlar.</small>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                        <i class="bi bi-plus-lg me-1"></i> Yeni Not Ekle
+                    </button>
+                </div>
+                <div class="row g-3" id="noteContainer"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Kod Ekle -->
+<div class="modal fade" id="addSnippetModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: #1e293b; border: 1px solid #334155;">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold">Yeni Kod Parçası Ekle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="snippetForm">
+                    <div class="mb-3"><label class="form-label">Başlık</label><input type="text" id="titleInput" class="form-control bg-dark text-light border-secondary" required></div>
+                    <div class="mb-3"><label class="form-label">Kategori / Dil</label><input type="text" id="categoryInput" class="form-control bg-dark text-light border-secondary" required></div>
+                    <div class="mb-3"><label class="form-label">Açıklama</label><input type="text" id="descInput" class="form-control bg-dark text-light border-secondary"></div>
+                    <div class="mb-3"><label class="form-label">Kod Bloğu</label><textarea id="codeInput" class="form-control bg-dark text-light border-secondary" rows="4" required></textarea></div>
+                    <button type="submit" class="btn btn-primary w-100">Kaydet</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Görev Ekle -->
+<div class="modal fade" id="addProjectModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: #1e293b; border: 1px solid #334155;">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold">Yeni Proje / Görev Ekle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="projectForm">
+                    <div class="mb-3"><label class="form-label">Görev Adı</label><input type="text" id="projTitleInput" class="form-control bg-dark text-light border-secondary" required></div>
+                    <div class="mb-3"><label class="form-label">Ders / Etiket</label><input type="text" id="projTagInput" class="form-control bg-dark text-light border-secondary" required></div>
+                    <div class="mb-3">
+                        <label class="form-label">Durum</label>
+                        <select id="projStatusInput" class="form-select bg-dark text-light border-secondary">
+                            <option value="todo">Yapılacak</option>
+                            <option value="inProgress">Devam Ediyor</option>
+                            <option value="done">Tamamlandı</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Ekle</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Not Ekle -->
+<div class="modal fade" id="addNoteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: #1e293b; border: 1px solid #334155;">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold">Yeni Ders Notu Ekle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="noteForm">
+                    <div class="mb-3"><label class="form-label">Ders Adı / Konu</label><input type="text" id="noteTitleInput" class="form-control bg-dark text-light border-secondary" required></div>
+                    <div class="mb-3"><label class="form-label">Not İçeriği</label><textarea id="noteContentInput" class="form-control bg-dark text-light border-secondary" rows="4" required></textarea></div>
+                    <button type="submit" class="btn btn-primary w-100">Kaydet</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function switchTab(tab) {
+        document.getElementById('tab-snippets').style.display = tab === 'snippets' ? 'block' : 'none';
+        document.getElementById('tab-projects').style.display = tab === 'projects' ? 'block' : 'none';
+        document.getElementById('tab-notes').style.display = tab === 'notes' ? 'block' : 'none';
+        
+        document.getElementById('nav-snippets').classList.toggle('active', tab === 'snippets');
+        document.getElementById('nav-projects').classList.toggle('active', tab === 'projects');
+        document.getElementById('nav-notes').classList.toggle('active', tab === 'notes');
+    }
+
+    // --- KOD DEPOSU ---
+    const defaultSnippets = [
+        { id: 1, category: "C# / WinForms", title: "SQL Bağlantı Cümlesi", desc: "SqlConnection bağlantı şablonu.", code: 'string conn = "Server=.; Database=DbOkul; Trusted_Connection=True;";' },
+        { id: 2, category: "JS / Web", title: "Fetch API İstek Şablonu", desc: "Asenkron veri çekme fonksiyonu.", code: 'async function getData(url) {\n  const res = await fetch(url);\n  return res.json();\n}' }
+    ];
+    let snippets = JSON.parse(localStorage.getItem('devspace_snippets')) || defaultSnippets;
+
+    function renderSnippets() {
+        const container = document.getElementById('snippetContainer');
+        container.innerHTML = '';
+        snippets.forEach(item => {
+            container.innerHTML += `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">${item.category}</span>
+                            <div>
+                                <button class="btn btn-sm btn-outline-secondary border-0 text-light me-1" onclick="copyCode(this, \`${encodeURIComponent(item.code)}\`)"><i class="bi bi-clipboard"></i></button>
+                                <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteSnippet(${item.id})"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>
+                        <h6 class="fw-bold">${item.title}</h6>
+                        <p class="text-secondary small mb-2">${item.desc}</p>
+                        <div class="code-block text-info">${item.code}</div>
+                    </div>
+                </div>`;
+        });
+        localStorage.setItem('devspace_snippets', JSON.stringify(snippets));
+    }
+
+    function copyCode(btn, encodedCode) {
+        navigator.clipboard.writeText(decodeURIComponent(encodedCode));
+        btn.innerHTML = '<i class="bi bi-check2 text-success"></i>';
+        setTimeout(() => { btn.innerHTML = '<i class="bi bi-clipboard"></i>'; }, 1500);
+    }
+
+    function deleteSnippet(id) {
+        if (confirm("Bu kodu silmek istiyor musunuz?")) {
+            snippets = snippets.filter(item => item.id !== id);
+            renderSnippets();
+        }
+    }
+
+    document.getElementById('snippetForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        snippets.unshift({
+            id: Date.now(),
+            title: document.getElementById('titleInput').value,
+            category: document.getElementById('categoryInput').value,
+            desc: document.getElementById('descInput').value,
+            code: document.getElementById('codeInput').value
+        });
+        renderSnippets();
+        bootstrap.Modal.getInstance(document.getElementById('addSnippetModal')).hide();
+        this.reset();
+    });
+
+    // --- PROJE TAKİBİ ---
+    const defaultProjects = [
+        { id: 101, title: "Web Tasarım Ödevi", tag: "İnternet Programcılığı", status: "todo" },
+        { id: 102, title: "C# Otomasyon Projesi", tag: "Görsel Programlama", status: "inProgress" }
+    ];
+    let projects = JSON.parse(localStorage.getItem('devspace_projects')) || defaultProjects;
+
+    function renderProjects() {
+        const todoCol = document.getElementById('todoContainer');
+        const inProgressCol = document.getElementById('inProgressContainer');
+        const doneCol = document.getElementById('doneContainer');
+        todoCol.innerHTML = ''; inProgressCol.innerHTML = ''; doneCol.innerHTML = '';
+
+        projects.forEach(item => {
+            const cardHtml = `
+                <div class="card p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-secondary">${item.tag}</span>
+                        <button class="btn btn-sm btn-outline-danger border-0 p-0" onclick="deleteProject(${item.id})"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                    <h6 class="fw-bold mb-3">${item.title}</h6>
+                    <div class="d-flex justify-content-end gap-1">
+                        ${item.status !== 'todo' ? `<button class="btn btn-sm btn-outline-light" onclick="moveProject(${item.id}, 'prev')"><i class="bi bi-arrow-left"></i></button>` : ''}
+                        ${item.status !== 'done' ? `<button class="btn btn-sm btn-outline-light" onclick="moveProject(${item.id}, 'next')"><i class="bi bi-arrow-right"></i></button>` : ''}
+                    </div>
+                </div>`;
+            if (item.status === 'todo') todoCol.innerHTML += cardHtml;
+            else if (item.status === 'inProgress') inProgressCol.innerHTML += cardHtml;
+            else if (item.status === 'done') doneCol.innerHTML += cardHtml;
+        });
+        localStorage.setItem('devspace_projects', JSON.stringify(projects));
+    }
+
+    function moveProject(id, direction) {
+        const statuses = ['todo', 'inProgress', 'done'];
+        const proj = projects.find(p => p.id === id);
+        let currentIndex = statuses.indexOf(proj.status);
+        if (direction === 'next' && currentIndex < 2) proj.status = statuses[currentIndex + 1];
+        if (direction === 'prev' && currentIndex > 0) proj.status = statuses[currentIndex - 1];
+        renderProjects();
+    }
+
+    function deleteProject(id) {
+        projects = projects.filter(p => p.id !== id);
+        renderProjects();
+    }
+
+    document.getElementById('projectForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        projects.push({
+            id: Date.now(),
+            title: document.getElementById('projTitleInput').value,
+            tag: document.getElementById('projTagInput').value,
+            status: document.getElementById('projStatusInput').value
+        });
+        renderProjects();
+        bootstrap.Modal.getInstance(document.getElementById('addProjectModal')).hide();
+        this.reset();
+    });
+
+    // --- HIZLI NOTLAR ---
+    const defaultNotes = [
+        { id: 201, title: "Veritabanı Vize Notu", content: "PRIMARY KEY benzersiz olmalı, FOREIGN KEY başka tablo ile ilişki kurar." },
+        { id: 202, title: "Algoritma Hatırlatma", content: "Döngülerde sonsuz döngüye girmemek için sayaç artırımını kontrol et!" }
+    ];
+    let notes = JSON.parse(localStorage.getItem('devspace_notes')) || defaultNotes;
+
+    function renderNotes() {
+        const container = document.getElementById('noteContainer');
+        container.innerHTML = '';
+        notes.forEach(item => {
+            container.innerHTML += `
+                <div class="col-md-6 col-lg-4">
+                    <div class="note-card h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold text-info m-0">${item.title}</h6>
+                                <button class="btn btn-sm btn-outline-danger border-0 p-0" onclick="deleteNote(${item.id})"><i class="bi bi-trash"></i></button>
+                            </div>
+                            <p class="text-light small m-0">${item.content}</p>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        localStorage.setItem('devspace_notes', JSON.stringify(notes));
+    }
+
+    function deleteNote(id) {
+        if (confirm("Bu notu silmek istiyor musunuz?")) {
+            notes = notes.filter(n => n.id !== id);
+            renderNotes();
+        }
+    }
+
+    document.getElementById('noteForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        notes.unshift({
+            id: Date.now(),
+            title: document.getElementById('noteTitleInput').value,
+            content: document.getElementById('noteContentInput').value
+        });
+        renderNotes();
+        bootstrap.Modal.getInstance(document.getElementById('addNoteModal')).hide();
+        this.reset();
+    });
+
+    // Başlangıç Yüklemeleri
+    renderSnippets();
+    renderProjects();
+    renderNotes();
+</script>
+
+<footer class="text-center py-3 text-secondary border-top border-secondary mt-5" style="font-size: 0.85rem;">
+    © 2026 <strong>DevSpace</strong> • Tasarım ve Geliştirme: <strong>Nazlı İmalı</strong>. Tüm Hakları Saklıdır.
+</footer>
+
+</body>
+</html>
